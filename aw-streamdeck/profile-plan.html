@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stream Deck Profile Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
+    pre, code { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
+  </style>
+</head>
+<body class="bg-white text-gray-900 min-h-screen">
+
+  <div class="max-w-3xl mx-auto px-6 py-12">
+
+    <!-- Header -->
+    <div class="mb-10 pb-6 border-b border-gray-200">
+      <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">aw-streamdeck</p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Stream Deck Profile Generator</h1>
+      <p class="text-gray-500">Programmatically configure all 29 buttons — no manual clicking.</p>
+    </div>
+
+    <!-- Already done -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Already Done</h2>
+      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+        <ul class="text-sm text-gray-700 grid grid-cols-2 gap-y-1">
+          <li class="flex gap-2"><span class="text-green-500">✓</span> aw_watcher.py → aw-client</li>
+          <li class="flex gap-2"><span class="text-green-500">✓</span> 29 activity scripts working</li>
+          <li class="flex gap-2"><span class="text-green-500">✓</span> Typos fixed</li>
+          <li class="flex gap-2"><span class="text-green-500">✓</span> 43/43 tests passing</li>
+          <li class="flex gap-2"><span class="text-green-500">✓</span> Changes synced to repo</li>
+          <li class="flex gap-2"><span class="text-yellow-500">!</span> <span class="text-yellow-700">At work: pip install aw-client + rebuild exe</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- What this is -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">What This Is</h2>
+      <p class="text-gray-700 leading-relaxed text-sm">
+        Stream Deck profiles are JSON files stored at
+        <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">%APPDATA%\Elgato\StreamDeck\ProfilesV2\</code>.
+        Writing the right JSON to that directory is all it takes to configure every button automatically.
+        The generator also creates <strong>288×288 PNG icons</strong> per category using Pillow.
+      </p>
+    </section>
+
+    <!-- Key facts -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Key Facts</h2>
+      <table class="w-full text-sm border-collapse">
+        <tbody>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-500 w-44">Plugin UUID</td><td class="py-2 font-mono text-xs text-gray-800">com.nicoohagedorn.pythonscriptdeck.script</td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-500">Settings keys</td><td class="py-2 font-mono text-xs text-gray-800">path, useVenv, venvPath, displayValues</td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-500">Profile location</td><td class="py-2 font-mono text-xs text-gray-800">%APPDATA%\Elgato\StreamDeck\ProfilesV2\</td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-500">Profile format</td><td class="py-2 font-mono text-xs text-gray-800">{GUID}.sdProfile\manifest.json</td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-500">Button addressing</td><td class="py-2 font-mono text-xs text-gray-800">"col,row" — "0,0" = top-left</td></tr>
+          <tr><td class="py-2 pr-4 text-gray-500">Icon size</td><td class="py-2 font-mono text-xs text-gray-800">288 × 288 px PNG</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Layout -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Layout — 15 Button Deck (5×3)</h2>
+      <p class="text-xs text-gray-400 mb-4">Top 6 = left 2 columns. Folder buttons fill columns 2–4.</p>
+
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">Main Page</h3>
+      <div class="grid grid-cols-5 gap-1.5 mb-3">
+        <!-- Row 0 -->
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">0,0</div>
+          <div class="text-xs font-medium text-blue-800">Email Triage</div>
+        </div>
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">1,0</div>
+          <div class="text-xs font-medium text-blue-800">Email Follow-up</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">2,0</div>
+          <div class="text-xs font-medium text-gray-700">Dev ▶</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">3,0</div>
+          <div class="text-xs font-medium text-gray-700">Data Eng ▶</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">4,0</div>
+          <div class="text-xs font-medium text-gray-700">CRM Admin ▶</div>
+        </div>
+        <!-- Row 1 -->
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">0,1</div>
+          <div class="text-xs font-medium text-blue-800">Pipeline Dev</div>
+        </div>
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">1,1</div>
+          <div class="text-xs font-medium text-blue-800">Data Analysis</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">2,1</div>
+          <div class="text-xs font-medium text-gray-700">Admin ▶</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">3,1</div>
+          <div class="text-xs font-medium text-gray-700">Systems ▶</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">4,1</div>
+          <div class="text-xs font-medium text-gray-700">Analysis ▶</div>
+        </div>
+        <!-- Row 2 -->
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">0,2</div>
+          <div class="text-xs font-medium text-blue-800">ETL Planning</div>
+        </div>
+        <div class="border border-blue-200 bg-blue-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">1,2</div>
+          <div class="text-xs font-medium text-blue-800">Research</div>
+        </div>
+        <div class="border border-gray-300 bg-gray-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">2,2</div>
+          <div class="text-xs font-medium text-gray-700">Training ▶</div>
+        </div>
+        <div class="border border-amber-200 bg-amber-50 rounded p-2 text-center">
+          <div class="text-xs text-gray-400 mb-0.5">3,2</div>
+          <div class="text-xs font-medium text-amber-800">AFK</div>
+        </div>
+        <div class="border border-gray-200 bg-white rounded p-2 text-center opacity-40">
+          <div class="text-xs text-gray-400 mb-0.5">4,2</div>
+          <div class="text-xs text-gray-400">—</div>
+        </div>
+      </div>
+      <div class="flex gap-5 text-xs text-gray-400 mb-8">
+        <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-300 mr-1 align-middle"></span>top 6</span>
+        <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-gray-100 border border-gray-300 mr-1 align-middle"></span>folder → sub-page</span>
+        <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-300 mr-1 align-middle"></span>AFK</span>
+      </div>
+
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Category Sub-Pages</h3>
+      <div class="space-y-2 text-sm">
+        <div class="border border-gray-200 rounded-lg p-3">
+          <span class="font-medium text-gray-800">Development</span>
+          <span class="text-gray-400 text-xs ml-2">5 buttons + ← Back</span>
+          <div class="mt-1.5 flex flex-wrap gap-1">
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Pipeline Dev</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">API Integration</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">ML / Data Quality</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">HTML Templates</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Tool / Utility Dev</span>
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-3">
+          <span class="font-medium text-gray-800">Data Engineering</span>
+          <span class="text-gray-400 text-xs ml-2">5 buttons + ← Back</span>
+          <div class="mt-1.5 flex flex-wrap gap-1">
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">ETL Planning</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Unit Config</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Data Validation</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Data Migration</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Pipeline Monitor</span>
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-3">
+          <span class="font-medium text-gray-800">CRM Admin</span>
+          <span class="text-gray-400 text-xs ml-2">5 buttons + ← Back</span>
+          <div class="mt-1.5 flex flex-wrap gap-1">
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Layout Config</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Entity Config</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Data Integrity</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">User Support</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Creating Reports</span>
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-3">
+          <span class="font-medium text-gray-800">Administration</span>
+          <span class="text-gray-400 text-xs ml-2">5 buttons + ← Back</span>
+          <div class="mt-1.5 flex flex-wrap gap-1">
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Dues Processing</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Intl Reporting</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Seniority List</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Email Triage</span>
+            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Email Follow-up</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="border border-gray-200 rounded-lg p-3">
+            <span class="font-medium text-gray-800 text-sm">Systems</span>
+            <div class="mt-1.5 flex flex-col gap-1">
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Docs / Systems</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Env Management</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">CRM Backup</span>
+            </div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-3">
+            <span class="font-medium text-gray-800 text-sm">Analysis</span>
+            <div class="mt-1.5 flex flex-col gap-1">
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Leadership Rpt</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Data Analysis</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Research</span>
+            </div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-3">
+            <span class="font-medium text-gray-800 text-sm">Training</span>
+            <div class="mt-1.5 flex flex-col gap-1">
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Staff Training</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Docs Non-Tech</span>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Stakeholder Ed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Icons -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Icons</h2>
+      <p class="text-sm text-gray-600 mb-4">Auto-generated 288×288 PNGs using Pillow. One icon per button, coloured by category. No manual asset hunting.</p>
+
+      <table class="w-full text-sm border-collapse mb-4">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="py-2 pr-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Category</th>
+            <th class="py-2 pr-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Emoji</th>
+            <th class="py-2 pr-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">BG</th>
+            <th class="py-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Accent</th>
+          </tr>
+        </thead>
+        <tbody class="text-xs">
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Development</td><td class="py-2 pr-4">💻</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#1e3a5f"></span><code>#1e3a5f</code></td><td class="py-2"><code class="text-indigo-600">#818cf8</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Data Engineering</td><td class="py-2 pr-4">⚙️</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#0e2f38"></span><code>#0e2f38</code></td><td class="py-2"><code class="text-cyan-600">#22d3ee</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">CRM Admin</td><td class="py-2 pr-4">🗂️</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#3a1f0e"></span><code>#3a1f0e</code></td><td class="py-2"><code class="text-orange-600">#fb923c</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Administration</td><td class="py-2 pr-4">📋</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#3a0e1a"></span><code>#3a0e1a</code></td><td class="py-2"><code class="text-rose-600">#fb7185</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Systems</td><td class="py-2 pr-4">🖥️</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#2a1a3a"></span><code>#2a1a3a</code></td><td class="py-2"><code class="text-purple-600">#c084fc</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Analysis & Reporting</td><td class="py-2 pr-4">📊</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#0e2e2a"></span><code>#0e2e2a</code></td><td class="py-2"><code class="text-teal-600">#2dd4bf</code></td></tr>
+          <tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-700">Training & Support</td><td class="py-2 pr-4">🎓</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#0e2035"></span><code>#0e2035</code></td><td class="py-2"><code class="text-sky-600">#38bdf8</code></td></tr>
+          <tr><td class="py-2 pr-4 text-gray-700">Top 6 / AFK</td><td class="py-2 pr-4">⭐</td><td class="py-2 pr-4"><span class="inline-block w-3.5 h-3.5 rounded mr-1 align-middle border border-gray-300" style="background:#1a2e1a"></span><code>#1a2e1a</code></td><td class="py-2"><code class="text-green-600">#4ade80</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p class="text-xs font-semibold text-gray-500 mb-2">Icon generation (Pillow)</p>
+        <pre class="text-xs text-gray-800 overflow-x-auto">from PIL import Image, ImageDraw, ImageFont
+
+def make_icon(label, emoji, bg_hex, accent_hex) -> Image:
+    img  = Image.new("RGB", (288, 288), bg_hex)
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle([8,8,280,280], radius=24, outline=accent_hex, width=3)
+
+    # emoji top-centre, label bottom-centre
+    em_font  = ImageFont.truetype("seguiemj.ttf", 100)
+    txt_font = ImageFont.truetype("arialbd.ttf", 28)
+    draw.text((144, 90),  emoji,       font=em_font,  anchor="mm", embedded_color=True)
+    draw.text((144, 220), label[:12],  font=txt_font, anchor="mm", fill=accent_hex)
+    return img</pre>
+        <p class="text-xs text-gray-400 mt-3">Fallback: skip icons entirely — Stream Deck shows the PythonScriptDeck default + button title text. Works fine, icons are cosmetic.</p>
+      </div>
+    </section>
+
+    <!-- Blocker -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">One Blocker</h2>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm">
+        <p class="font-medium text-amber-900 mb-2">Folder button JSON format must be confirmed at work.</p>
+        <ol class="list-decimal list-inside text-gray-700 space-y-1 text-sm">
+          <li>Open Stream Deck software at work</li>
+          <li>Create one test folder on any page</li>
+          <li>Open <code class="bg-amber-100 px-1 rounded text-xs">%APPDATA%\Elgato\StreamDeck\ProfilesV2\&lt;profile&gt;.sdProfile\manifest.json</code></li>
+          <li>Find the folder button entry — copy its <code class="bg-amber-100 px-1 rounded text-xs">UUID</code> and <code class="bg-amber-100 px-1 rounded text-xs">Settings</code></li>
+          <li>Share back → wired into the generator</li>
+        </ol>
+        <p class="text-xs text-gray-500 mt-3">Fallback: use multiple swipeable pages instead of folders. Same generator, different nav UUID.</p>
+      </div>
+    </section>
+
+    <!-- Generator file -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">New File — generate_profile.py</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <pre class="text-xs text-gray-800 overflow-x-auto"># ── Edit before running ───────────────────────────────────────
+INSTALL_DIR = r"C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck"
+VENV_PATH   = rf"{INSTALL_DIR}\.venv"
+SCRIPTS_DIR = rf"{INSTALL_DIR}\activities"
+
+TOP_6 = [
+    "Email Triage",                          # 0,0
+    "Email Follow-up",                       # 1,0
+    "Pipeline Development",                  # 0,1
+    "Data Analysis",                         # 1,1
+    "ETL Planning, Design & Architecture",   # 0,2
+    "Research",                              # 1,2
+]
+# ──────────────────────────────────────────────────────────────
+
+PLUGIN_UUID = "com.nicoohagedorn.pythonscriptdeck.script"
+FOLDER_UUID = "???"   # confirmed at work
+
+CATEGORIES = {
+    "Dev":      ("💻", "#1e3a5f", "#818cf8", ["Pipeline Development", ...]),
+    "Data Eng": ("⚙️",  "#0e2f38", "#22d3ee", ["ETL Planning...",     ...]),
+    # ...
+}</pre>
+      </div>
+    </section>
+
+    <!-- Steps -->
+    <section class="mb-10">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Steps</h2>
+      <ol class="space-y-4">
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-amber-400 text-amber-600 text-xs font-bold flex items-center justify-center">1</span>
+          <div>
+            <p class="font-medium text-gray-800 text-sm">At work: discover folder JSON format</p>
+            <p class="text-gray-500 text-sm">Create one test folder in SD UI → open ProfilesV2 manifest → copy folder button UUID + Settings</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 text-gray-600 text-xs font-bold flex items-center justify-center">2</span>
+          <div>
+            <p class="font-medium text-gray-800 text-sm">Write generate_profile.py</p>
+            <p class="text-gray-500 text-sm">make_button(), make_folder_button(), make_icon(), build_profile() — writes profile + PNGs to ProfilesV2</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 text-gray-600 text-xs font-bold flex items-center justify-center">3</span>
+          <div>
+            <p class="font-medium text-gray-800 text-sm">Run at work</p>
+            <code class="block mt-1 bg-gray-100 px-3 py-1.5 rounded text-xs text-gray-800">pip install pillow &amp;&amp; python generate_profile.py</code>
+            <p class="text-gray-500 text-sm mt-1">Restart Stream Deck → profile appears with all 29 coloured buttons</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 text-gray-600 text-xs font-bold flex items-center justify-center">4</span>
+          <div>
+            <p class="font-medium text-gray-800 text-sm">Verify</p>
+            <p class="text-gray-500 text-sm">Press each folder → each activity → check <code class="bg-gray-100 px-1 rounded text-xs">~/.aw_state.json</code> → run <code class="bg-gray-100 px-1 rounded text-xs">python test_watcher.py</code></p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <div class="text-xs text-gray-400 border-t border-gray-100 pt-4">
+      TOP_6 positions are fixed (left 2 cols). Edit the list to swap which 6 activities go there — any valid label from the Activity enum works.
+    </div>
+
+  </div>
+</body>
+</html>
