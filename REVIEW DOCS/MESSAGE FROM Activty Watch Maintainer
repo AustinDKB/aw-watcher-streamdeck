@@ -1,0 +1,1 @@
+using aw-client https://github.com/activitywatch/aw-client is the recommended way to send events to the server. Handles other stuff such as queuing events incase the server is down, auth etc.
