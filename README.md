@@ -84,7 +84,6 @@ For full setup (Stream Deck profile generation, exe build, aw-qt integration) se
 |-----|-------------|
 | [aw-streamdeck/SETUP_GUIDE.md](aw-streamdeck/SETUP_GUIDE.md) | Full 9-step setup: prerequisites → Stream Deck profile → verification |
 | [aw-streamdeck/README.md](aw-streamdeck/README.md) | Activity categories, customization guide, project structure |
-| [aw-streamdeck/TEST_PLAN.md](aw-streamdeck/TEST_PLAN.md) | Manual test checklist (23 activities, 6 phases) |
 | [AGENT.md](AGENT.md) | Architecture reference for AI-assisted development |
 
 ---
