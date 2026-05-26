@@ -25,36 +25,36 @@ logger.addHandler(_file_handler)
 
 
 class Activity(str, Enum):
-    PIPELINE_DEVELOPMENT               = "Pipeline Development"
-    API_INTEGRATION                    = "API Integration"
-    ML_DATA_QUALITY_SYSTEMS            = "ML / Data Quality Systems"
-    HTML_DOCUMENT_TEMPLATES            = "HTML / Document Templates"
-    TOOL_UTILITY_DEVELOPMENT           = "Tool / Utility Development"
-    ETL_PLANNING_DESIGN_ARCHITECTURE   = "ETL Planning, Design & Architecture"
-    UNIT_CONFIGURATION                 = "Unit Configuration"
-    DATA_VALIDATION_CLEANING           = "Data Validation & Cleaning"
-    DATA_MIGRATION_REMEDIATION         = "Data Migration & Remediation"
-    PIPELINE_MONITORING_TESTING        = "Pipeline Monitoring & Testing"
-    LAYOUT_CONFIGURATION               = "Layout Configuration"
-    ENTITY_CONFIGURATION               = "Entity Configuration (Editing / Creating)"
-    DATA_INTEGRITY_MONITORING          = "Data Integrity Monitoring"
-    USER_SUPPORT_TROUBLESHOOTING       = "User Support & Troubleshooting"
-    CREATING_REPORTS                   = "Creating Reports"
-    DUES_PROCESSING                    = "Dues Processing"
-    INTERNATIONAL_REPORTING            = "International Reporting"
-    SENIORITY_LIST_MANAGEMENT          = "Seniority List Management"
-    EMAIL_TRIAGE                       = "Email Triage"
-    EMAIL_FOLLOW_UP                    = "Email Follow-up"
-    DOCUMENTATION_SYSTEMS_WRITING      = "Documentation / Systems Writing"
-    ENVIRONMENT_MANAGEMENT             = "Environment Management"
-    RUNNING_A_CRM_BACKUP               = "Running a CRM Backup"
-    LEADERSHIP_REPORTING               = "Leadership Reporting"
-    DATA_ANALYSIS                      = "Data Analysis"
-    RESEARCH                           = "Research"
-    STAFF_TRAINING                     = "Staff Training"
-    DOCUMENTATION_NON_TECHNICAL        = "Documentation for Non-Technical Users"
-    STAKEHOLDER_EDUCATION              = "Stakeholder Education"
-    UNKNOWN                            = "unknown"
+    # Coding
+    FEATURE_DEV          = "Feature Dev"
+    BUG_FIX              = "Bug Fix"
+    CODE_REVIEW          = "Code Review"
+    REFACTORING          = "Refactoring"
+    WRITING_TESTS        = "Writing Tests"
+    # DevOps
+    CI_CD_PIPELINE       = "CI/CD Pipeline"
+    DEPLOYMENT           = "Deployment"
+    MONITORING           = "Monitoring"
+    INFRASTRUCTURE       = "Infrastructure"
+    # Planning
+    SPRINT_PLANNING      = "Sprint Planning"
+    ARCHITECTURE_DESIGN  = "Architecture Design"
+    RESEARCH             = "Research"
+    TASK_MANAGEMENT      = "Task Management"
+    # Communication
+    TEAM_MEETING         = "Team Meeting"
+    ONE_ON_ONE           = "One-on-One"
+    CLIENT_MEETING       = "Client Meeting"
+    ASYNC_COMMS          = "Async Comms"
+    # Learning
+    READING_DOCS         = "Reading Docs"
+    TUTORIAL_COURSE      = "Tutorial / Course"
+    EXPERIMENTING        = "Experimenting"
+    # Admin
+    REPORTS_METRICS      = "Reports & Metrics"
+    TIME_TRACKING        = "Time Tracking"
+    ADMIN_EMAIL          = "Admin Email"
+    UNKNOWN              = "unknown"
 
 
 def reset_state():

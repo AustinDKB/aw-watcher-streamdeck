@@ -3,35 +3,35 @@ import sys
 from pathlib import Path
 
 VALID_ACTIVITIES = {
-    "Pipeline Development",
-    "API Integration",
-    "ML / Data Quality Systems",
-    "HTML / Document Templates",
-    "Tool / Utility Development",
-    "ETL Planning, Design & Architecture",
-    "Unit Configuration",
-    "Data Validation & Cleaning",
-    "Data Migration & Remediation",
-    "Pipeline Monitoring & Testing",
-    "Layout Configuration",
-    "Entity Configuration (Editing / Creating)",
-    "Data Integrity Monitoring",
-    "User Support & Troubleshooting",
-    "Creating Reports",
-    "Dues Processing",
-    "International Reporting",
-    "Seniority List Management",
-    "Email Triage",
-    "Email Follow-up",
-    "Documentation / Systems Writing",
-    "Environment Management",
-    "Running a CRM Backup",
-    "Leadership Reporting",
-    "Data Analysis",
+    # Coding
+    "Feature Dev",
+    "Bug Fix",
+    "Code Review",
+    "Refactoring",
+    "Writing Tests",
+    # DevOps
+    "CI/CD Pipeline",
+    "Deployment",
+    "Monitoring",
+    "Infrastructure",
+    # Planning
+    "Sprint Planning",
+    "Architecture Design",
     "Research",
-    "Staff Training",
-    "Documentation for Non-Technical Users",
-    "Stakeholder Education",
+    "Task Management",
+    # Communication
+    "Team Meeting",
+    "One-on-One",
+    "Client Meeting",
+    "Async Comms",
+    # Learning
+    "Reading Docs",
+    "Tutorial / Course",
+    "Experimenting",
+    # Admin
+    "Reports & Metrics",
+    "Time Tracking",
+    "Admin Email",
     "unknown",
 }
 

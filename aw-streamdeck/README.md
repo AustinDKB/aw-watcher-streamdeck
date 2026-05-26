@@ -1,89 +1,146 @@
 # aw-streamdeck — ActivityWatch Manual Activity Watcher
 
-Logs what you're working on to ActivityWatch via Stream Deck buttons + background watcher.
-
----
-
-## Fresh PC Setup (~5 min)
-
-**Prerequisites:** Python 3.12, ActivityWatch, Stream Deck software + PythonScriptDeck plugin installed.
-
-### 1 — Clone / copy repo
-```
-C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck\
-```
-
-### 2 — Edit USER CONFIG in `generate_profile.py`
-```python
-INSTALL_DIR  = r"C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck"
-VENV_EXE     = r"C:\Users\<YOU>\AppData\Local\Programs\Python\Python312\pythonw.exe"
-```
-Leave `SCRIPTS_DIR`, `PROFILE_NAME`, and everything else as-is.
-
-### 3 — Build the watcher exe
-```powershell
-$dest = "$env:LOCALAPPDATA\Programs\ActivityWatch\aw-streamdeck"
-mkdir $dest
-copy aw_watcher.py $dest
-copy config.py $dest
-cd $dest
-python -m venv .venv
-.venv\Scripts\pip install aw-client pyinstaller
-.venv\Scripts\pyinstaller --onefile --windowed --name aw-streamdeck aw_watcher.py
-copy dist\aw-streamdeck.exe .\aw-streamdeck.exe
-```
-
-### 4 — Enable aw-qt autostart
-Edit `%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml`:
-```toml
-[aw-qt]
-autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window", "aw-streamdeck"]
-```
-
-### 5 — Generate Stream Deck profile
-```powershell
-cd C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck
-python generate_profile.py
-```
-Restart Stream Deck → select **AW Activities** profile.
-
-### 6 — Restart ActivityWatch
-Close and reopen ActivityWatch (aw-qt). `aw-streamdeck.exe` starts automatically.
-
-### Verify it works
-```powershell
-# Should show "Watcher started" with today's date:
-Get-Content "$env:LOCALAPPDATA\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log" -Tail 5
-# Press a Stream Deck button, then check state file updated:
-Get-Content "$env:USERPROFILE\.aw_state.json"
-```
+Logs what you're working on to ActivityWatch via Stream Deck buttons + a background watcher daemon.
 
 ---
 
 ## How it works
 
-- **Stream Deck button press** → runs `activities/<category>/<name>.py` → writes `~/.aw_state.json`
-- **aw-streamdeck.exe** (background) → polls state file every 20s → heartbeats to ActivityWatch
-- **ActivityWatch** → stores events in bucket `aw-manual-streamdeck_<hostname>`
+- **Stream Deck button press** → runs `activities/<category>/<name>.py` → writes label to `~/.aw_state.json`
+- **aw-streamdeck.exe** (background, auto-started by aw-qt) → polls state file every 20s → sends heartbeats to ActivityWatch
+- **ActivityWatch** → stores events in bucket `aw-manual-streamdeck_<hostname>` → shows in Timeline
+
+The CLI tool (`set_activity.py`) can also set the activity from any terminal without needing the Stream Deck.
 
 ---
 
-## Valid activities (29)
+## Project structure
 
-- **Development:** Pipeline Development, API Integration, ML / Data Quality Systems, HTML / Document Templates, Tool / Utility Development
-- **Data Engineering:** ETL Planning Design & Architecture, Unit Configuration, Data Validation & Cleaning, Data Migration & Remediation, Pipeline Monitoring & Testing
-- **CRM Admin:** Layout Configuration, Entity Configuration (Editing / Creating), Data Integrity Monitoring, User Support & Troubleshooting, Creating Reports
-- **Administration:** Dues Processing, International Reporting, Seniority List Management, Email Triage, Email Follow-up
-- **Systems Infrastructure:** Documentation / Systems Writing, Environment Management, Running a CRM Backup
-- **Analysis & Reporting:** Leadership Reporting, Data Analysis, Research
-- **Training & Support:** Staff Training, Documentation for Non-Technical Users, Stakeholder Education
+```
+aw-streamdeck/
+├── aw_watcher.py        # Background daemon
+├── config.py            # Constants (STATE_FILE, BUCKET_ID, INTERVAL=20, PULSE_TIME=35)
+├── set_activity.py      # CLI: python set_activity.py "Feature Dev"
+├── test_watcher.py      # Unit + integration tests
+├── requirements.txt     # aw-client
+├── activities/          # Activity scripts (one .py per activity)
+│   ├── coding/          # Feature Dev, Bug Fix, Code Review, Refactoring, Writing Tests
+│   ├── devops/          # CI/CD Pipeline, Deployment, Monitoring, Infrastructure
+│   ├── planning/        # Sprint Planning, Architecture Design, Research, Task Management
+│   ├── communication/   # Team Meeting, One-on-One, Client Meeting, Async Comms
+│   ├── learning/        # Reading Docs, Tutorial / Course, Experimenting
+│   ├── admin/           # Reports & Metrics, Time Tracking, Admin Email
+│   └── afk.py           # Away From Keyboard
+└── generator/           # Stream Deck profile builder
+    └── generate_profile.py
+```
 
 ---
 
-## Add a new activity
+## Fresh PC Setup (~10 min)
 
-1. Add to `Activity` enum in `aw_watcher.py`
-2. Add same string to `VALID_ACTIVITIES` in `set_activity.py`
-3. Create `activities/<category>/<name>.py` (see any existing script for template)
-4. Add to `CATEGORIES` or `TOP_6` in `generate_profile.py`
-5. Rebuild exe (repeat Step 3 above) + regenerate profile (Step 5)
+See [SETUP_GUIDE.md](SETUP_GUIDE.md) for the full 9-step walkthrough.
+
+Short version:
+
+1. Clone repo to `C:\Users\<YOU>\stream-deck-watcher\`
+2. Edit `INSTALL_DIR` and `VENV_EXE` in `generator/generate_profile.py`
+3. Build `aw-streamdeck.exe` with PyInstaller (see SETUP_GUIDE § Step 4)
+4. Add `"aw-streamdeck"` to `autostart_modules` in `aw-qt.toml`
+5. Run `python generator/generate_profile.py` — restart Stream Deck — select **AW Activities**
+6. Restart ActivityWatch (aw-qt) — exe auto-starts
+
+---
+
+## Valid activities (23 across 6 categories)
+
+| Category | Activities |
+|----------|-----------|
+| **Coding** | Feature Dev, Bug Fix, Code Review, Refactoring, Writing Tests |
+| **DevOps** | CI/CD Pipeline, Deployment, Monitoring, Infrastructure |
+| **Planning** | Sprint Planning, Architecture Design, Research, Task Management |
+| **Communication** | Team Meeting, One-on-One, Client Meeting, Async Comms |
+| **Learning** | Reading Docs, Tutorial / Course, Experimenting |
+| **Admin** | Reports & Metrics, Time Tracking, Admin Email |
+
+Plus **AFK** (Away From Keyboard).
+
+---
+
+## Customizing activities
+
+To add, remove, or rename activities you need to update three files in sync:
+
+### 1. Create the activity script
+
+```python
+# activities/<category>/<name>.py
+import json
+from pathlib import Path
+
+STATE_FILE = Path.home() / ".aw_state.json"
+STATE_FILE.write_text(json.dumps({"label": "My Activity"}), encoding="utf-8")
+print("My Activity")
+```
+
+### 2. Add to the `Activity` enum (`aw_watcher.py`)
+
+```python
+MY_ACTIVITY = "My Activity"
+```
+
+### 3. Add to `VALID_ACTIVITIES` (`set_activity.py`)
+
+```python
+"My Activity",
+```
+
+### 4. Add to `CATEGORIES` or `TOP_6` in `generator/generate_profile.py`
+
+```python
+("My\nActivity", "my_activity.py"),
+```
+
+### 5. Regenerate the Stream Deck profile
+
+```powershell
+pip install pillow   # only needed once
+python generator/generate_profile.py
+```
+
+Restart Stream Deck software, then select **AW Activities** again.
+
+### 6. Rebuild the watcher exe
+
+Because `aw_watcher.py` changed, rebuild the exe (see [SETUP_GUIDE.md § Step 4](SETUP_GUIDE.md)):
+
+```powershell
+cd "$env:LOCALAPPDATA\Programs\ActivityWatch\aw-streamdeck"
+.venv\Scripts\pyinstaller --onefile --windowed --name aw-streamdeck aw_watcher.py
+Copy-Item dist\aw-streamdeck.exe .\aw-streamdeck.exe -Force
+```
+
+Then restart ActivityWatch.
+
+---
+
+## CLI usage
+
+```powershell
+# Set activity from terminal (bypasses Stream Deck entirely)
+python set_activity.py "Feature Dev"
+python set_activity.py "AFK"
+
+# Check current activity
+Get-Content "$env:USERPROFILE\.aw_state.json"
+```
+
+---
+
+## Run tests
+
+```powershell
+python test_watcher.py   # requires ActivityWatch running at localhost:5600
+```
+
+Tests cover all 23 activities + AFK + end-to-end integration (set label → wait → verify AW event).

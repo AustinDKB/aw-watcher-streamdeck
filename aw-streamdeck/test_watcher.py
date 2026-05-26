@@ -82,11 +82,11 @@ def test_heartbeat():
 
 def test_state_file_write():
     print("\n[Unit] State file write")
-    result = run_set_activity("Pipeline Development")
+    result = run_set_activity("Feature Dev")
     exists = STATE_FILE.exists()
     if exists:
         data = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-        correct = data.get("label") == "Pipeline Development"
+        correct = data.get("label") == "Feature Dev"
     else:
         correct = False
     check("State file exists after set_activity.py call", exists)
@@ -95,9 +95,9 @@ def test_state_file_write():
 
 def test_state_file_read():
     print("\n[Unit] State file read")
-    STATE_FILE.write_text(json.dumps({"label": "Email Triage"}), encoding="utf-8")
+    STATE_FILE.write_text(json.dumps({"label": "Code Review"}), encoding="utf-8")
     data = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-    check("State file reads correct label", data.get("label") == "Email Triage", f"got={data}")
+    check("State file reads correct label", data.get("label") == "Code Review", f"got={data}")
 
 
 def test_invalid_label_rejected():
@@ -111,7 +111,7 @@ def test_invalid_label_rejected():
 
 
 def test_valid_labels():
-    print("\n[Unit] All 29 valid labels accepted")
+    print("\n[Unit] All valid labels accepted")
     for label in VALID_ACTIVITIES:
         result = run_set_activity(label)
         ok = result.returncode == 0
@@ -136,14 +136,14 @@ def test_integration():
         time.sleep(5)
         check("Watcher process running after 5s", proc.poll() is None)
 
-        # Pipeline Development for 65s -> 3 heartbeats at t=20,40,60 -> duration ~40s
-        run_set_activity("Pipeline Development")
-        print("  Set Pipeline Development")
+        # Feature Dev for 65s -> 3 heartbeats at t=20,40,60 -> duration ~40s
+        run_set_activity("Feature Dev")
+        print("  Set Feature Dev")
         time.sleep(65)
 
-        # Email Triage for 65s -> 3 heartbeats -> duration ~40s
-        run_set_activity("Email Triage")
-        print("  Set Email Triage")
+        # Bug Fix for 65s -> 3 heartbeats -> duration ~40s
+        run_set_activity("Bug Fix")
+        print("  Set Bug Fix")
         time.sleep(65)
 
         # Research for 25s -> at least 1 heartbeat
@@ -192,19 +192,19 @@ def test_integration():
             default=0.0,
         )
 
-    pipeline_dur = max_duration("Pipeline Development")
-    email_dur    = max_duration("Email Triage")
+    feature_dur  = max_duration("Feature Dev")
+    bugfix_dur   = max_duration("Bug Fix")
     research_exists = any(ev.get("data", {}).get("label") == "Research" for ev in events)
 
     check(
-        "Pipeline Development event exists with duration >= 40s",
-        pipeline_dur >= 40,
-        f"max_duration={pipeline_dur:.1f}s",
+        "Feature Dev event exists with duration >= 40s",
+        feature_dur >= 40,
+        f"max_duration={feature_dur:.1f}s",
     )
     check(
-        "Email Triage event exists with duration >= 40s",
-        email_dur >= 40,
-        f"max_duration={email_dur:.1f}s",
+        "Bug Fix event exists with duration >= 40s",
+        bugfix_dur >= 40,
+        f"max_duration={bugfix_dur:.1f}s",
     )
     check("At least one Research event exists", research_exists)
 

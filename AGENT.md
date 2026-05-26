@@ -15,7 +15,17 @@ stream-deck-watcher/
     ├── set_activity.py     # CLI switcher (entry: python set_activity.py <label>)
     ├── config.py           # All constants — edit here to change behavior
     ├── test_watcher.py     # Integration + unit tests
-    └── requirements.txt    # Single dep: requests
+    ├── requirements.txt    # Single dep: aw-client
+    ├── activities/         # One .py per activity, organized by category
+    │   ├── coding/         # feature_dev, bug_fix, code_review, refactoring, writing_tests
+    │   ├── devops/         # ci_cd_pipeline, deployment, monitoring, infrastructure
+    │   ├── planning/       # sprint_planning, architecture_design, research, task_management
+    │   ├── communication/  # team_meeting, one_on_one, client_meeting, async_comms
+    │   ├── learning/       # reading_docs, tutorial_course, experimenting
+    │   ├── admin/          # reports_metrics, time_tracking, admin_email
+    │   └── afk.py
+    └── generator/          # Stream Deck profile builder
+        └── generate_profile.py
 ```
 
 ## Architecture
@@ -47,11 +57,17 @@ State machine is a single JSON file. No database, no queue, no IPC.
 ## Valid Activity Labels (Activity enum in aw_watcher.py)
 
 ```
-deep-work | meetings | admin-email | file-management | afk | unknown
+Coding:        Feature Dev | Bug Fix | Code Review | Refactoring | Writing Tests
+DevOps:        CI/CD Pipeline | Deployment | Monitoring | Infrastructure
+Planning:      Sprint Planning | Architecture Design | Research | Task Management
+Communication: Team Meeting | One-on-One | Client Meeting | Async Comms
+Learning:      Reading Docs | Tutorial / Course | Experimenting
+Admin:         Reports & Metrics | Time Tracking | Admin Email
+Special:       unknown
 ```
 
 `set_activity.py` validates against this set and exits 1 on bad label.
-`unknown` is the reset state written on watcher startup.
+`unknown` is the fallback when the state file is missing or contains an unrecognized label.
 
 ## Common Tasks
 
@@ -68,11 +84,13 @@ Keep `PULSE_TIME > INTERVAL` so heartbeats don't create gaps.
 Edit `AW_BASE` in `config.py`.
 
 ### Wire a Stream Deck button
-In Stream Deck software, set button action to Open/Run with command:
+Use `generator/generate_profile.py` to auto-generate the full Stream Deck profile (recommended).
+
+For manual wiring, use PythonScriptDeck plugin pointing at the script directly:
 ```
-python C:\path\to\aw-streamdeck\set_activity.py "deep-work"
+activities\coding\feature_dev.py
 ```
-No code changes needed.
+No code changes needed for manual wiring.
 
 ## Running
 
@@ -81,14 +99,14 @@ No code changes needed.
 cd aw-streamdeck
 python -m venv .venv
 .venv\Scripts\activate
-pip install requests
+pip install aw-client
 
 # Start watcher daemon (keep running)
 python aw_watcher.py
 
 # Switch activity (from any terminal)
-python set_activity.py "deep-work"
-python set_activity.py "afk"
+python set_activity.py "Feature Dev"
+python set_activity.py "AFK"
 
 # Run tests (ActivityWatch must be running)
 python test_watcher.py
@@ -100,7 +118,7 @@ python test_watcher.py
 
 **Unit tests** — run fast, test: AW connectivity, bucket creation, heartbeat POST, state file read/write, label validation.
 
-**Integration test** — ~3 minutes. Spawns the actual watcher subprocess, cycles through activities (65s deep-work → 65s admin-email → 25s afk), then queries AW API to verify events landed with correct durations.
+**Integration test** — ~3 minutes. Spawns the actual watcher subprocess, cycles through activities (e.g. 65s Feature Dev → 65s Code Review → 25s AFK), then queries AW API to verify events landed with correct durations.
 
 Tests require ActivityWatch running at localhost:5600. Tests create/use the real `aw-manual-streamdeck` bucket.
 

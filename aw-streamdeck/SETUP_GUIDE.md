@@ -1,359 +1,315 @@
-# AW-StreamDeck — Manual Activity Watcher for ActivityWatch
+# AW-StreamDeck — Setup Guide
 
-Full documentation of the setup, changes made, architecture, and Stream Deck wiring.
-
----
-
-## Table of Contents
-
-1. [What This Does](#what-this-does)
-2. [Architecture](#architecture)
-3. [Files Changed / Created](#files-changed--created)
-4. [ActivityWatch Integration Changes](#activitywatch-integration-changes)
-5. [Activity Taxonomy](#activity-taxonomy)
-6. [Stream Deck Setup Guide](#stream-deck-setup-guide)
-7. [How It Works](#how-it-works)
-8. [Rebuilding the EXE](#rebuilding-the-exe)
-9. [Troubleshooting](#troubleshooting)
+Complete setup from a fresh Windows PC to a fully working Stream Deck activity tracker.
 
 ---
 
-## What This Does
+## Prerequisites
 
-This system lets you press a button on your Elgato Stream Deck to log what you're working on to ActivityWatch. Each button press writes your current activity (e.g. "Pipeline Development", "Email Triage") to a state file. A background watcher (`aw-streamdeck.exe`) polls that file every 20 seconds and sends heartbeats to ActivityWatch's API. The result shows up in the ActivityWatch timeline under the `aw-manual-streamdeck_UFCW-PC005` bucket.
+Install these before starting. All are free.
 
-The watcher is auto-started by ActivityWatch (aw-qt) alongside the built-in watchers. It logs to `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log`.
+| Software | Version | Where to get it |
+|----------|---------|-----------------|
+| Python | 3.12 (64-bit) | [python.org/downloads](https://www.python.org/downloads/) |
+| ActivityWatch | latest | [activitywatch.net](https://activitywatch.net/) |
+| Elgato Stream Deck software | latest | [elgato.com/downloads](https://www.elgato.com/downloads) |
+| PythonScriptDeck plugin | latest | Elgato Marketplace (search inside Stream Deck software) |
+| PyInstaller | (installed via pip below) | — |
+
+> **Python install note:** During install, check **"Add Python to PATH"** and **"Install for all users"**. Use the default install location.
+
+> **PythonScriptDeck:** Open the Stream Deck app → click the "More actions..." icon (puzzle piece) → search "PythonScriptDeck" → Install.
 
 ---
 
-## Architecture
+## Step 1 — Clone the repository
 
-```
-Stream Deck Button
-       |
-       v
-[PythonScriptDeck Plugin]  -->  runs  activities\<category>\<script>.py
-       |                              |
-       |                              v
-       |                        writes to ~/.aw_state.json
-       |                              |
-       v                              v
-  (no CMD flash)              aw-streamdeck.exe reads state
-  via pythonw.exe + venv              |
-                                      v
-                              POST heartbeat to
-                              http://localhost:5600/api/0
-                              bucket: aw-manual-streamdeck_UFCW-PC005
-                                      |
-                                      v
-                              ActivityWatch Timeline
+```powershell
+git clone https://github.com/<YOUR-USERNAME>/stream-deck-watcher.git C:\Users\<YOU>\stream-deck-watcher
 ```
 
-### Data Flow
+Or download the ZIP and extract to the same path. After this step you should have:
 
-1. You press a Stream Deck button
-2. PythonScriptDeck runs the corresponding `.py` script via the venv's `pythonw.exe`
-3. The script writes `{"label": "Pipeline Development"}` to `~/.aw_state.json`
-4. `aw-streamdeck.exe` (running in background, auto-started by aw-qt) polls the state file every 20 seconds
-5. When the label changes, the watcher sends a heartbeat to ActivityWatch
-6. ActivityWatch stores the event and displays it in the Timeline
-
----
-
-## Files Changed / Created
-
-### Core Watcher Files
-
-| File | Purpose |
-|------|---------|
-| `aw_watcher.py` | Main watcher logic (polls state file, sends heartbeats). Logs to file instead of console. |
-| `config.py` | Configuration (AW API URL, bucket ID, hostname, intervals) |
-| `aw-streamdeck.exe` | PyInstaller-built standalone executable. Auto-discovered and started by aw-qt. |
-| `set_activity.py` | CLI tool to set activity from terminal |
-| `set-activity.bat` | Batch wrapper for `set_activity.py` (terminal use) |
-
-### ActivityWatch Integration
-
-| File | Purpose |
-|------|---------|
-| `aw-qt.toml` | Auto-start config (at `%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml`) |
-| `aw-streamdeck.toml` | Watcher-specific config |
-
-### Stream Deck Activity Scripts
-
-29 scripts in `activities/<category>/<name>.py`, each writing a label to the state file.
-
----
-
-## ActivityWatch Integration Changes
-
-### How Auto-Start Works
-
-aw-qt discovers modules by scanning the ActivityWatch install directory for `aw-*.exe` files and recursing into `aw-*` directories. It found `aw-streamdeck.exe` inside `aw-streamdeck/` and registered it as a bundled module.
-
-**Key detail**: aw-qt only recognizes `.exe` files on Windows (not `.py`, `.bat`, or `.cmd`). This is why the watcher was compiled into a standalone executable using PyInstaller.
-
-### aw-qt.toml
-
-**Location:** `%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml`
-
-```toml
-[aw-qt]
-autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window", "aw-streamdeck"]
-
-[aw-qt-testing]
-#autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window"]
+```
+C:\Users\<YOU>\stream-deck-watcher\
+└── aw-streamdeck\
+    ├── aw_watcher.py
+    ├── config.py
+    ├── set_activity.py
+    ├── activities\
+    └── generator\
+        └── generate_profile.py
 ```
 
-### Bucket Name
-
-Bucket ID is `aw-manual-streamdeck_UFCW-PC005` (uses dynamic hostname via `socket.gethostname()`).
-
 ---
 
-## Activity Taxonomy
+## Step 2 — Edit USER CONFIG in the generator
 
-29 activities across 7 categories. Each maps to a Stream Deck button.
-
-### Development (5)
-| Script | Label |
-|--------|-------|
-| `pipeline_development.py` | Pipeline Development |
-| `api_integration.py` | API Integration |
-| `ml_data_quality_systems.py` | ML / Data Quality Systems |
-| `html_document_templates.py` | HTML / Document Templates |
-| `tool_utility_development.py` | Tool / Utility Development |
-
-### Data Engineering (5)
-| Script | Label |
-|--------|-------|
-| `etl_planning_design_architecture.py` | ETL Planning, Design & Architecture |
-| `unit_configuration.py` | Unit Configuration |
-| `data_validation_cleaning.py` | Data Validation & Cleaning |
-| `data_migration_remediation.py` | Data Migration & Remediation |
-| `pipeline_monitoring_testing.py` | Pipeline Monitoring & Testing |
-
-### CRM Admin (5)
-| Script | Label |
-|--------|-------|
-| `layout_configuration.py` | Layout Configuration |
-| `entity_configuration.py` | Entity Configurtaion (Editing / Creating) |
-| `data_integrity_monitoring.py` | Data Integrity Monitoring |
-| `user_support_troubleshooting.py` | User Support & Troubleshooting |
-| `creating_reports.py` | Creating Reports |
-
-### Administration (5)
-| Script | Label |
-|--------|-------|
-| `dues_processing.py` | Dues Processing |
-| `international_reporting.py` | International Reporting |
-| `seniority_list_management.py` | Seniority List Management |
-| `email_triage.py` | Email Triage |
-| `email_follow_up.py` | Email Follow-up |
-
-### Systems Infrastructure (3)
-| Script | Label |
-|--------|-------|
-| `documentation_systems_writing.py` | Documentation / Sytems Writing |
-| `environment_management.py` | Environment Management |
-| `running_a_crm_backup.py` | Running a CRM Backup |
-
-### Analysis & Reporting (3)
-| Script | Label |
-|--------|-------|
-| `leadership_reporting.py` | Leadership Reporting |
-| `data_analysis.py` | Data Analysis |
-| `research.py` | Research |
-
-### Training & Support (3)
-| Script | Label |
-|--------|-------|
-| `staff_training.py` | Staff Training |
-| `documentation_for_non_technical_users.py` | Documentation for Non-Technical Users |
-| `stakeholder_education.py` | Stakeholder Education |
-
----
-
-## Stream Deck Setup Guide
-
-### Prerequisites
-
-- Elgato Stream Deck software installed
-- [PythonScriptDeck](https://marketplace.elgato.com/product/pythonscriptdeck-4cbe9ebb-8a48-427d-b1fa-f5f21b6a68d2) plugin installed from the Elgato Marketplace
-
-### Per-Button Configuration
-
-For each Stream Deck button:
-
-1. Drag **Python Script Deck** action onto the button
-2. Configure:
-
-| Field | Value |
-|-------|-------|
-| **Path to Script** | Full path to the `.py` file (see table below) |
-| **Use virtual Environment?** | Yes |
-| **Path to Virtual Environment** | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\.venv` |
-| **Python interpreter (optional)** | Leave blank (venv handles it) |
-
-### Example: "Email Triage" Button
-
-- **Path to Script:** `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\activities\administration\email_triage.py`
-- **Use virtual Environment?** Yes
-- **Path to Virtual Environment:** `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\.venv`
-
-### Stream Deck Profile Layout Suggestion
-
-With 29 buttons + a "Next Page" button, use **4 pages** on a 6-button Stream Deck, or **2 pages** on a 15-button Stream Deck. Organize by category.
-
----
-
-## How It Works
-
-### The Watcher (`aw-streamdeck.exe`)
-
-- Auto-started by aw-qt alongside the built-in watchers (aw-server, aw-watcher-afk, aw-watcher-window)
-- Logs to `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log`
-- Polls `~/.aw_state.json` every 20 seconds (`INTERVAL = 20`)
-- When the label changes, sends a heartbeat to ActivityWatch API
-- Creates the bucket `aw-manual-streamdeck_UFCW-PC005` on first run
-- On startup, resets state to `"unknown"`
-- Pulse time is 35 seconds — if no heartbeat received in 35s, AW closes the event
-- Built with PyInstaller (`--onefile --windowed`) so no console window appears
-
-### The Activity Scripts (`activities/<category>/<name>.py`)
-
-Each script is minimal — just writes the label to the state file:
+Open `aw-streamdeck\generator\generate_profile.py` in a text editor and update the two lines at the top of the USER CONFIG section:
 
 ```python
+# ─── USER CONFIG ──────────────────────────────────────────────────────────────
+INSTALL_DIR  = r"C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck"   # <-- your path
+VENV_EXE     = r"C:\Users\<YOU>\AppData\Local\Programs\Python\Python312\pythonw.exe"  # <-- your Python
+```
+
+- `INSTALL_DIR` → the full path to the `aw-streamdeck` folder (not the repo root).
+- `VENV_EXE` → path to `pythonw.exe` inside your Python install. On most systems this is exactly as shown above — just replace `<YOU>` with your Windows username.
+
+Leave `SCRIPTS_DIR`, `PROFILE_NAME`, `TOP_6`, and `CATEGORIES` as-is for now.
+
+**To find your Python path:**
+```powershell
+where pythonw
+# Example output: C:\Users\austi\AppData\Local\Programs\Python\Python312\pythonw.exe
+```
+
+---
+
+## Step 3 — Customize your categories (optional)
+
+The default categories are a generic developer template (Coding, DevOps, Planning, etc.). To adapt them to your own workflow:
+
+### 3a — Edit the activity labels in the generator
+
+In `generator/generate_profile.py`, edit the `CATEGORIES` list and `TOP_6` list to match your activities. Each entry follows this pattern:
+
+```python
+CATEGORIES = [
+    ("ShortName", "Full Category Name", "folder_name", [
+        ("Button\nLabel",  "script_filename.py"),
+        # add more...
+    ]),
+    # add more categories...
+]
+```
+
+- `ShortName` — appears on the folder button on the main Stream Deck page (keep short, ≤8 chars)
+- `Full Category Name` — used in documentation only
+- `folder_name` — must match the subfolder name inside `activities/`
+- `Button\nLabel` — text shown on the Stream Deck button (`\n` = line break)
+- `script_filename.py` — must match the Python script file you create in Step 3b
+
+### 3b — Add corresponding activity scripts
+
+For each new activity, create a Python file in `activities/<folder_name>/`:
+
+```python
+# activities/coding/my_new_activity.py
 import json
 from pathlib import Path
 
 STATE_FILE = Path.home() / ".aw_state.json"
-STATE_FILE.write_text(json.dumps({"label": "Pipeline Development"}), encoding="utf-8")
-print("Pipeline Development")
+STATE_FILE.write_text(json.dumps({"label": "My New Activity"}), encoding="utf-8")
+print("My New Activity")
 ```
 
-- `print()` output is used by PythonScriptDeck for the "return value" feature
-- No CMD flash — runs via `pythonw.exe` in the venv
-- No network calls — the watcher handles all API communication
+The `label` value is what gets logged to ActivityWatch — make it human-readable.
 
-### The State File (`~/.aw_state.json`)
+### 3c — Keep the enum and valid set in sync
 
-Simple JSON file with a single `label` key:
+Every label you add must also appear in two other places:
 
-```json
-{"label": "Pipeline Development"}
-```
+1. `aw_watcher.py` — add to the `Activity` enum:
+   ```python
+   MY_NEW_ACTIVITY = "My New Activity"
+   ```
 
-The watcher reads this file, not the scripts directly. This means:
-- Multiple scripts can write to it (only the last one wins)
-- The watcher is decoupled from the Stream Deck
-- You can also set activity from the terminal: `python set_activity.py "Email Triage"`
+2. `set_activity.py` — add to `VALID_ACTIVITIES`:
+   ```python
+   "My New Activity",
+   ```
 
-### The Config (`config.py`)
-
-```python
-import socket
-from pathlib import Path
-
-STATE_FILE = Path.home() / ".aw_state.json"
-AW_BASE    = "http://localhost:5600/api/0"
-HOSTNAME   = socket.gethostname()            # UFCW-PC005
-BUCKET_ID  = f"aw-manual-streamdeck_{HOSTNAME}"  # aw-manual-streamdeck_UFCW-PC005
-PULSE_TIME = 35
-INTERVAL   = 20
-```
+If these three are out of sync, the watcher will log a warning and fall back to "unknown" for any unrecognized label.
 
 ---
 
-## Rebuilding the EXE
+## Step 4 — Build the watcher executable
 
-If you modify `aw_watcher.py` or `config.py`, you must rebuild the executable for aw-qt to pick up the changes:
+The watcher must be compiled to a `.exe` so ActivityWatch (aw-qt) can auto-start it.
+
+Open PowerShell and run:
 
 ```powershell
-cd "C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck"
+# Create the deployment directory
+$dest = "$env:LOCALAPPDATA\Programs\ActivityWatch\aw-streamdeck"
+New-Item -ItemType Directory -Force -Path $dest
 
-# Activate the venv
-.venv\Scripts\Activate.ps1
+# Copy source files
+Copy-Item C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck\aw_watcher.py $dest
+Copy-Item C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck\config.py $dest
 
-# Build the exe (must have pyinstaller installed in venv)
-pyinstaller --onefile --windowed --name aw-streamdeck aw_watcher.py
+# Set up a venv and install dependencies
+Set-Location $dest
+python -m venv .venv
+.venv\Scripts\pip install aw-client pyinstaller
 
-# Move the exe from dist/ to the aw-streamdeck directory
+# Build the exe
+.venv\Scripts\pyinstaller --onefile --windowed --name aw-streamdeck aw_watcher.py
+
+# Move exe to deployment root
 Copy-Item dist\aw-streamdeck.exe .\aw-streamdeck.exe -Force
 
 # Clean up build artifacts
 Remove-Item dist, build -Recurse -Force
 Remove-Item aw-streamdeck.spec -Force
-
-# Restart ActivityWatch to pick up the new exe
-Stop-Process -Name aw-qt -Force
-Stop-Process -Name aw-streamdeck -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 2
-Start-Process "C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-qt.exe"
 ```
 
-**Important**: The exe is a PyInstaller `--onefile` bundle. It bundles `aw_watcher.py`, `config.py`, and all dependencies (including `requests`). The `--windowed` flag prevents any console window from appearing.
+After this you should have `aw-streamdeck.exe` at:
+```
+%LOCALAPPDATA%\Programs\ActivityWatch\aw-streamdeck\aw-streamdeck.exe
+```
+
+> **Rebuilding:** Any time you change `aw_watcher.py` or `config.py`, repeat this step and restart ActivityWatch.
+
+---
+
+## Step 5 — Enable aw-qt autostart
+
+ActivityWatch's launcher (aw-qt) needs to know to start your watcher alongside the built-in ones.
+
+Open this file in a text editor:
+```
+%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml
+```
+
+Change the `autostart_modules` line to include `aw-streamdeck`:
+
+**Before:**
+```toml
+[aw-qt]
+autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window"]
+```
+
+**After:**
+```toml
+[aw-qt]
+autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window", "aw-streamdeck"]
+```
+
+> **How it works:** aw-qt scans `%LOCALAPPDATA%\Programs\ActivityWatch\` for `aw-*.exe` files and directories. It finds `aw-streamdeck.exe` inside `aw-streamdeck\` and registers it as a module.
+
+---
+
+## Step 6 — Generate the Stream Deck profile
+
+Install Pillow first (needed for icon generation):
+
+```powershell
+pip install pillow
+```
+
+Then generate the profile from the `aw-streamdeck` folder:
+
+```powershell
+Set-Location C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck
+python generator/generate_profile.py
+```
+
+Expected output:
+```
+  [Coding] -> <guid>
+  [DevOps] -> <guid>
+  [Plan] -> <guid>
+  [Comms] -> <guid>
+  [Learn] -> <guid>
+  [Admin] -> <guid>
+
+Profile written: C:\Users\...\Elgato\StreamDeck\ProfilesV3\<GUID>.sdProfile
+-> Restart Stream Deck, then select 'AW Activities' in Profiles.
+```
+
+The generator writes directly to `%APPDATA%\Elgato\StreamDeck\ProfilesV3\`. No manual file copying needed.
+
+---
+
+## Step 7 — Restart ActivityWatch
+
+Close and reopen ActivityWatch (aw-qt). The `aw-streamdeck.exe` will start automatically.
+
+```powershell
+# If ActivityWatch is already running:
+Stop-Process -Name aw-qt -Force
+Start-Sleep -Seconds 2
+Start-Process "$env:LOCALAPPDATA\ActivityWatch\aw-qt.exe"
+```
+
+---
+
+## Step 8 — Restart Stream Deck software and select the profile
+
+1. Close and reopen the Elgato Stream Deck application.
+2. Click the profile name at the top of the Stream Deck window.
+3. Select **"AW Activities"** from the list.
+
+You should see the main page with your top-6 quick-access buttons on the left and category folder buttons on the right.
+
+---
+
+## Step 9 — Verify everything works
+
+Run each check in order:
+
+**Check 1 — Watcher is running**
+```powershell
+Get-Process aw-streamdeck -ErrorAction SilentlyContinue
+# Should show a process entry. If blank, the exe didn't start — check aw-qt logs.
+```
+
+**Check 2 — Watcher log shows "started"**
+```powershell
+Get-Content "$env:LOCALAPPDATA\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log" -Tail 5
+# Should show: <timestamp> [INFO]: Watcher started
+```
+
+**Check 3 — Press a Stream Deck button**
+
+Press any button (e.g. "Feature Dev"). Then check the state file:
+```powershell
+Get-Content "$env:USERPROFILE\.aw_state.json"
+# Should show: {"label": "Feature Dev"}
+```
+
+**Check 4 — ActivityWatch receives the data**
+
+Wait ~25 seconds (one poll cycle), then open `http://localhost:5600` in a browser.
+Go to **Timeline** → look for bucket `aw-manual-streamdeck_<your-hostname>` in the filter dropdown.
+You should see a bar for the activity you pressed.
 
 ---
 
 ## Troubleshooting
 
-### Watcher not auto-starting
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| `aw-streamdeck.exe` doesn't start | Not in aw-qt.toml, or exe path wrong | Verify `aw-qt.toml` has `"aw-streamdeck"` in `autostart_modules`; verify exe exists at `%LOCALAPPDATA%\Programs\ActivityWatch\aw-streamdeck\aw-streamdeck.exe` |
+| Pressing a button does nothing | PythonScriptDeck not configured | In Stream Deck app, check each button → the script path and venv path must be set |
+| CMD window flashes on button press | Using `python.exe` instead of `pythonw.exe` | Set `VENV_EXE` to `pythonw.exe` (not `python.exe`) in generator; regenerate profile |
+| State file not updating | Script path wrong in button config | Re-run `python generator/generate_profile.py` after setting correct `INSTALL_DIR`; re-import profile |
+| Watcher log shows "unknown label" | Label in script doesn't match enum | Ensure `Activity` enum, `VALID_ACTIVITIES`, and the script's `label` string are identical |
+| No bucket in AW Timeline | Watcher not sending heartbeats | Check watcher log for errors; verify ActivityWatch is running at localhost:5600 |
+| Profile not appearing in Stream Deck | Generator didn't run, or SD not restarted | Re-run generator; fully restart Stream Deck software (not just profile switch) |
 
-1. Check aw-qt logs at `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-qt\` — look for `Starting module aw-streamdeck`
-2. If you see `Module aw-streamdeck not found`, verify `aw-streamdeck.exe` exists in `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\`
-3. If the exe is missing, rebuild it (see [Rebuilding the EXE](#rebuilding-the-exe))
+**aw-qt logs** (shows whether aw-streamdeck was discovered and started):
+```
+%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-qt\
+```
 
-### Watcher running but not logging
+**Watcher logs** (shows heartbeats, label transitions, errors):
+```
+%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log
+```
 
-Check `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log` for errors.
+---
 
-### Button press but no data in ActivityWatch
-
-1. Is the watcher running? Check Task Manager for `aw-streamdeck.exe`
-2. Check the state file: `type %USERPROFILE%\.aw_state.json`
-3. If state file shows your label but AW doesn't update, wait 20 seconds (polling interval)
-4. Check the watcher log for errors
-5. Restart ActivityWatch if needed
-
-### CMD window flashes when pressing a button
-
-Make sure the venv is configured in PythonScriptDeck:
-- **Use virtual Environment?** → Yes
-- **Path to Virtual Environment** → `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\.venv`
-
-The venv includes `pythonw.exe` which runs without a console window. Note: the *watcher* exe uses `--windowed` so it never shows a console. The CMD flash issue is only about the *button scripts*.
-
-### Bucket not showing in Timeline
-
-In ActivityWatch at `http://localhost:5600`:
-- Go to **Timeline** view
-- Look for the **Activity** filter dropdown at the top
-- You should see `aw-manual-streamdeck_UFCW-PC005` listed
-- If not, hard-refresh the page (Ctrl+F5)
-
-### Adding a new activity
-
-1. Add the label string to the `Activity` enum in `aw_watcher.py`
-2. Add the same string to `VALID_ACTIVITIES` in `set_activity.py`
-3. Create a new script in `activities/<category>/<name>.py` following the same pattern
-4. **Rebuild the exe** (see [Rebuilding the EXE](#rebuilding-the-exe)) — the watcher must be recompiled for enum changes to take effect
-5. Restart ActivityWatch to start the new exe
-
-### Key file locations
+## Key file locations
 
 | Item | Path |
 |------|------|
-| Watcher exe | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\aw-streamdeck.exe` |
-| Watcher source | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\aw_watcher.py` |
-| Config | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\config.py` |
+| Repo source | `C:\Users\<YOU>\stream-deck-watcher\aw-streamdeck\` |
+| Watcher exe | `%LOCALAPPDATA%\Programs\ActivityWatch\aw-streamdeck\aw-streamdeck.exe` |
 | Watcher log | `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-streamdeck\aw-streamdeck.log` |
-| CLI setter | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\set_activity.py` |
-| Activity scripts | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\activities\<category>\<name>.py` |
-| Virtual environment | `C:\Users\abakanec\AppData\Local\Programs\ActivityWatch\aw-streamdeck\.venv\` |
 | State file | `%USERPROFILE%\.aw_state.json` |
-| AW-qt config | `%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml` |
-| AW-qt logs | `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-qt\` |
-| AW-streamdeck config | `%LOCALAPPDATA%\activitywatch\activitywatch\aw-streamdeck\aw-streamdeck.toml` |
-| ActivityWatch data | `%LOCALAPPDATA%\activitywatch\activitywatch\` |
+| aw-qt config | `%LOCALAPPDATA%\activitywatch\activitywatch\aw-qt\aw-qt.toml` |
+| aw-qt logs | `%LOCALAPPDATA%\activitywatch\activitywatch\Logs\aw-qt\` |
+| Stream Deck profiles | `%APPDATA%\Elgato\StreamDeck\ProfilesV3\` |
